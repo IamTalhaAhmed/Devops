@@ -1,0 +1,7 @@
+[
+  {
+    "id": "redeploy-webhook",
+    "execute-command": "/home/talhaa/projectdir/scripts/redeploy.sh",
+    "command-working-directory": "/home/talhaa/projectdir/helloworld"
+  }
+]
