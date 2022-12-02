@@ -1,37 +1,76 @@
-# Setting Up HookDeck Webhook [Visit Github](https://github.com/adnanh/webhook)
-## WHAT ARE WEBHOOKS
-A webhook is an HTTP-based callback function that allows lightweight, event-driven communication between 2 application programming interfaces (APIs). Webhooks are used by a wide variety of web apps to receive small amounts of data from other apps, but webhooks can also be used to trigger automation workflows in GitOps environments. For example, if you're using Github or Bitbucket, you can use webhook to set up a hook that runs a redeploy script for your project on your staging server, whenever you push changes to the master branch of your project.
-## You can set up a HookDeck Webhook by following the steps given below.
+# Using Webhook in Project for Event-Driven Communication.
+Webhooks can also be used to trigger event-driven wrokflows. For example, you can set up a hook that runs a redeploy script for your project, whenever you push changes to the master branch of your project.
 
+Setting up [Webhook](https://github.com/adnanh/webhook) for linux
 ## Step 1: Install the webhook
-First of all you have to install the Webhook.If you are using Ubuntu linux (17.04 or later), following command will install community packaged version.
+Following command will install community packaged version of [Webhook](https://github.com/adnanh/webhook)
 
 ```    
 sudo apt-get install webhook
 ```
 
-## Step 2: Create a file hooks.json or hooks.yml
-After installation of webhook you have to define some hooks that you want webhook to serve. Webhook supports YAML and JSON configration files but we will focus on JSON example here. 
+## Step 2: Configure a hook file
+Webhook support files written in JSON or YAML format. We will focus on JSON example here. 
 
-So make a hooks.json file.
+Make a hooks.json file at the same location where you have your project 
 ```
 nano hooks.json
 ```
 This file will contain an array of hooks the webhook will serve.
 
-***Bash script that you want to run by your hook should have  `#!/bin/sh`  shebang on top.***
 
-### Its time to set up your hooks.json: 
-
-Simple hook named `redeploy-webhook` is defined that will run a redeploy script located in `/home/username/projectdir/scripts`.
+Simple hook named `redeploy-webhook` is defined that will run a redeploy script located in `/path to your project directory/scripts`.
 ```
 [
-  {
-    "id": "redeploy-webhook",
-    "execute-command": "/home/username/projectdir/scripts/redeploy.sh",
-    "command-working-directory": "/var/webhook"
-  }
+    {
+        "id": "redeploy-webhook",
+        "execute-command": "/path to your project directory/scripts/redeploy.sh",
+        "command-working-directory": "/path to your project directory/project name",
+        "pass-arguments-to-command": [
+            {
+                "source": "payload",
+                "name": "head_commit.id"
+            },
+            {
+                "source": "payload",
+                "name": "head_commit.message"
+            },
+            {
+                "source": "payload",
+                "name": "head_commit.author.name"
+            },
+            {
+                "source": "payload",
+                "name": "head_commit.author.email"
+            }
+        ],
+        "trigger-rule": {
+            "and": [
+                {
+                    "match": {
+                        "type": "payload-hash-sha256",
+                        "secret": "afdafdag",
+                        "parameter": {
+                            "source": "header",
+                            "name": "X-Hub-Signature-256"
+                        }
+                    }
+                },
+                {
+                    "match": {
+                        "type": "value",
+                        "value": "refs/heads/master",
+                        "parameter": {
+                            "source": "payload",
+                            "name": "ref"
+                        }
+                    }
+                }
+            ]
+        }
+    }
 ]
+
 ```
 **Only id and execute-command parameters are requireed in hooks.json file other parameters are optional.**
 
@@ -41,9 +80,10 @@ Simple hook named `redeploy-webhook` is defined that will run a redeploy script 
 
 - command-working-directory - specifies the working directory that will be used for the script when it's executed.
 
+- pass-arguments-to-command - specifies the list of arguments
 To see the detailed description of what properties a hook can contain [Hooks Defination](https://github.com/adnanh/webhook/blob/master/docs/Hook-Definition.md)
 
-
+***Bash script that you want to run by your hook should have  `#!/bin/sh`  shebang on top.***
 ## Step 3: Run your webhook
 In this step you will run your webhook to serve your hooks file.
 
