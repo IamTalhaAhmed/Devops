@@ -1,7 +1,49 @@
 [
-  {
-    "id": "redeploy-webhook",
-    "execute-command": "/home/talhaa/projectdir/scripts/redeploy.sh",
-    "command-working-directory": "/home/talhaa/projectdir/helloworld"
-  }
+    {
+        "id": "redeploy-webhook",
+        "execute-command": "/home/talhaa/projectdir/scripts/redeploy.sh",
+        "command-working-directory": "/home/talhaa/projectdir/helloworld"
+        "pass-arguments-to-command": [
+            {
+                "source": "payload",
+                "name": "head_commit.id"
+            },
+            {
+                "source": "payload",
+                "name": "head_commit.message"
+            },
+            {
+                "source": "payload",
+                "name": "head_commit.author.name"
+            },
+            {
+                "source": "payload",
+                "name": "head_commit.author.email"
+            }
+        ],
+        "trigger-rule": {
+            "and": [
+                {
+                    "match": {
+                        "type": "payload-hash-sha256",
+                        "secret": "afdafdag",
+                        "parameter": {
+                            "source": "header",
+                            "name": "X-Hub-Signature-256"
+                        }
+                    }
+                },
+                {
+                    "match": {
+                        "type": "value",
+                        "value": "refs/heads/master",
+                        "parameter": {
+                            "source": "payload",
+                            "name": "ref"
+                        }
+                    }
+                }
+            ]
+        }
+    }
 ]
