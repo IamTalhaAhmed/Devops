@@ -7,7 +7,7 @@ Setting up [Webhook](https://github.com/adnanh/webhook) for linux
 Following command will install community packaged version of [Webhook](https://github.com/adnanh/webhook)
 
 ```terminal 
-sudo apt-get install webhook
+sudo apt install webhook
 ```
 
 ## Step 2: Configure a hook file
@@ -51,7 +51,7 @@ A hook named `redeploy-webhook` is defined below that will run a redeploy script
                 {
                     "match": {
                         "type": "payload-hash-sha256",
-                        "secret": "afdafdag",
+                        "secret": "your secret value",
                         "parameter": {
                             "source": "header",
                             "name": "X-Hub-Signature-256"
