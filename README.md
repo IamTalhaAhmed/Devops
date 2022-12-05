@@ -19,14 +19,14 @@ In this file we will configure hook(s) that we want our webhook to trigger on sp
 >[
 >    {
 >        "id": "redeploy-webhook",
->       "execute-command": "/path to your project directory/scripts/redeploy.sh",
+>        "execute-command": "/path to your project directory/scripts/redeploy.sh",
 >        "command-working-directory": "/path to your project directory/project name",
 >        "pass-arguments-to-command": [
 >            {
 >                "source": "payload",
 >                "name": "head_commit.id"
 >            },
->           {
+>            {
 >                "source": "payload",
 >                "name": "head_commit.message"
 >            },
@@ -34,36 +34,36 @@ In this file we will configure hook(s) that we want our webhook to trigger on sp
 >                "source": "payload",
 >                "name": "head_commit.author.name"
 >            },
->           {
+>            {
 >               "source": "payload",
 >               "name": "head_commit.author.email"
->          }
->      ],
->     "trigger-rule": {
->        "and": [
->           {
->              "match": {
->                 "type": "payload-hash-sha256",
->                "secret": "your secret value",
->               "parameter": {
->                  "source": "header",
->                 "name": "X-Hub-Signature-256"
 >            }
->       }
->  },
-> {
->    "match": {
->       "type": "value",
->      "value": "refs/heads/master",
->     "parameter": {
->        "source": "payload",
->       "name": "ref"
->  }
+>        ],
+>        "trigger-rule": {
+>            "and": [
+>                {
+>                    "match": {
+>                    "type": "payload-hash-sha256",
+>                    "secret": "your secret value",
+>                    "parameter": {
+>                        "source": "header",
+>                        "name": "X-Hub-Signature-256"
+>                        }
 >                    }
->               }
->          ]
->     }
->}
+>                },
+>                {
+>                    "match": {
+>                    "type": "value",
+>                    "value": "refs/heads/master",
+>                    "parameter": {
+>                        "source": "payload",
+>                        "name": "ref"
+>                        }
+>                    }
+>                }
+>            ]
+>        }
+>    }
 >]
 
 >```
@@ -91,6 +91,54 @@ Now its time to start your webhook.
 ```	
 Webhook will start up on default port 9000 and will provide you with one HTTP endpoint `http://yourserver:9000/hooks/{id}`. This endpoint will be used to add a webhook to your git repository.
 
+***Note: Webhook tool should stay active to trigger the specified scripts when a certain event occurs, so you want it to be running all the time. For this purpose you can make a `service file` in systemd.***
+###Configuring a Service File
+1. Move to /etc/systemd/system
+```
+cd /etc/systemd/system
+```
+
+2. Create a service file using
+```
+sudo nano service-filename.service
+```
+
+3. Configure your service file
+```
+[Unit]
+Description=Run Webhook Tool
+
+[Service]
+User=<username e.g talha>
+WorkingDirectory=<path of directory that contains hooks file e.g /home/talha/projectdir>
+ExecStart=<command/script you want to run e.g webhook -hooks hooks.json -verbose>
+Restart=always
+
+[Install]
+WantedBy=multi-user.target   
+```
+
+4. Reload the service files to include the new service 
+```
+sudo systemctl daemon-reload
+```
+
+5. Start your service
+```
+sudo systemctl start your-service.service
+```
+
+6. To check the status of your service
+```
+sudo systemctl status example.service
+```
+
+7. To enable your service on every reboot
+```
+sudo systemctl enable example.service 
+```
+
+
 ## Step 4: Add the webhook to your git repository
 
 To add a webhook in your repository follow the steps given below
@@ -109,5 +157,5 @@ To add a webhook in your repository follow the steps given below
 
 For any further issues while adding a webhook in project repository [Visit Github Docs](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks)
 
-
-Congrats!!! you are ready to go just push something to your specified repository, it will invoke the hook to run the command in your hooks.json.
+### That's it
+**Its all done now. If now you push code to your master branch, it will be automatically redeployed.**
