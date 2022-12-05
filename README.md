@@ -1,9 +1,8 @@
-# Using Webhook in Project for Event-Driven Communication.
-Webhooks can also be used to trigger event-driven wrokflows. For example, you can set up a hook that runs a redeploy script for your project, whenever you push changes to specified branch of your project.
+# Using Github Webhook for Auto Deployment on a Linux Server 
+A webhook allows APIs to do event-driven communication. It can also be used to set up auto deployment on server. For example, redeploying code automatically whenever changes are pushed to a specific branch.
 
 Setting up [Webhook](https://github.com/adnanh/webhook) for linux
-
-## Step 1: Install the webhook
+## Step 1: Tool to handle webhook requests
 Following command will install community packaged version of [Webhook](https://github.com/adnanh/webhook)
 
 ```terminal 
