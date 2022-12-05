@@ -1,78 +1,72 @@
 # Using Github Webhook for Auto Deployment on a Linux Server 
 A webhook allows APIs to do event-driven communication. It can also be used to set up auto deployment on server. For example, redeploying code automatically whenever changes are pushed to a specific branch.
 
-Setting up [Webhook](https://github.com/adnanh/webhook) for linux
 ## Step 1: Tool to handle webhook requests
-Following command will install community packaged version of [Webhook](https://github.com/adnanh/webhook)
+We need an API endpoint to handle requests from github. You can make your own program for this, but we are going to use [webhook](https://github.com/adnanh/webhook) by [adnanh](https://github.com/adnanh) for this purpose.
 
 ```terminal 
 sudo apt install webhook
 ```
 
-## Step 2: Configure a hook file
-Webhook supports files written in JSON or YAML format. We will focus on JSON example here. 
+## Step 2: Configure Webhook
+We need to configure our tool to handle requests as we need. It needs a configuration file in JSON or YAML format.
 
-Make a hooks.json file at the same location where you have your project 
-```terminal
-nano hooks.json
-```
 In this file we will configure hook(s) that we want our webhook to trigger on specified events.
 
 
-A hook named `redeploy-webhook` is defined below that will run a redeploy script located in `/path to your project directory/scripts`.
+>hooks.json
+>```json
+>[
+>    {
+>        "id": "redeploy-webhook",
+>       "execute-command": "/path to your project directory/scripts/redeploy.sh",
+>        "command-working-directory": "/path to your project directory/project name",
+>        "pass-arguments-to-command": [
+>            {
+>                "source": "payload",
+>                "name": "head_commit.id"
+>            },
+>           {
+>                "source": "payload",
+>                "name": "head_commit.message"
+>            },
+>            {
+>                "source": "payload",
+>                "name": "head_commit.author.name"
+>            },
+>           {
+>               "source": "payload",
+>               "name": "head_commit.author.email"
+>          }
+>      ],
+>     "trigger-rule": {
+>        "and": [
+>           {
+>              "match": {
+>                 "type": "payload-hash-sha256",
+>                "secret": "your secret value",
+>               "parameter": {
+>                  "source": "header",
+>                 "name": "X-Hub-Signature-256"
+>            }
+>       }
+>  },
+> {
+>    "match": {
+>       "type": "value",
+>      "value": "refs/heads/master",
+>     "parameter": {
+>        "source": "payload",
+>       "name": "ref"
+>  }
+>                    }
+>               }
+>          ]
+>     }
+>}
+>]
 
-```json
-[
-    {
-        "id": "redeploy-webhook",
-        "execute-command": "/path to your project directory/scripts/redeploy.sh",
-        "command-working-directory": "/path to your project directory/project name",
-        "pass-arguments-to-command": [
-            {
-                "source": "payload",
-                "name": "head_commit.id"
-            },
-            {
-                "source": "payload",
-                "name": "head_commit.message"
-            },
-            {
-                "source": "payload",
-                "name": "head_commit.author.name"
-            },
-            {
-                "source": "payload",
-                "name": "head_commit.author.email"
-            }
-        ],
-        "trigger-rule": {
-            "and": [
-                {
-                    "match": {
-                        "type": "payload-hash-sha256",
-                        "secret": "your secret value",
-                        "parameter": {
-                            "source": "header",
-                            "name": "X-Hub-Signature-256"
-                        }
-                    }
-                },
-                {
-                    "match": {
-                        "type": "value",
-                        "value": "refs/heads/master",
-                        "parameter": {
-                            "source": "payload",
-                            "name": "ref"
-                        }
-                    }
-                }
-            ]
-        }
-    }
-]
-
-```
+>```
 **Only id and execute-command parameters are requireed in hooks.json file other parameters are optional.**
 
 - id - specifies the *name* of your hook. This value is used to create the HTTP endpoint `http://yourserver:port/hooks/your-hook-id`
